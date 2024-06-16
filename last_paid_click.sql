@@ -16,5 +16,4 @@ left join leads as le
         and se.visit_date <= le.created_at
         and se.medium in ('cpc', 'cpa', 'youtube', 'cpp', 'tg', 'social')
 order by le.amount desc nulls last, se.visit_date asc, se.source asc
-limit 10
 ;
