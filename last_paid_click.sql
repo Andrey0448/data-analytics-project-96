@@ -1,19 +1,39 @@
-select distinct
-    se.visitor_id,
-    se.visit_date,
-    se.source as utm_source,
-    se.medium as utm_medium,
-    se.campaign as utm_campaign,
-    le.lead_id,
-    le.created_at,
-    le.amount,
-    le.closing_reason,
-    le.status_id
-from sessions as se
-left join leads as le
-    on
-        se.visitor_id = le.visitor_id
-        and se.visit_date <= le.created_at
-        and se.medium in ('cpc', 'cpa', 'youtube', 'cpp', 'tg', 'social')
-order by le.amount desc nulls last, se.visit_date asc, se.source asc
-;
+with visitors_with_leads as (
+    select
+        s.visitor_id,
+        s.visit_date,
+        l.lead_id,
+        l.created_at,
+        l.amount,
+        l.closing_reason,
+        l.status_id,
+        s.medium as utm_medium,
+        s.campaign as utm_campaign,
+        s.source as utm_source,
+        row_number() over (
+            partition by s.visitor_id order by s.visit_date desc
+        ) as rn
+    from sessions as s
+    left join leads as l
+        on
+            s.visitor_id = l.visitor_id
+            and s.visit_date <= l.created_at
+    where s.medium != 'organic'
+)
+
+select
+    visitor_id,
+    visit_date,
+    utm_source,
+    utm_medium,
+    utm_campaign,
+    lead_id,
+    created_at,
+    amount,
+    closing_reason,
+    status_id
+from visitors_with_leads
+where rn = 1
+order by 8 desc nulls last, 2, 3, 4, 5
+limit 10
+
