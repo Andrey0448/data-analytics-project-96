@@ -36,4 +36,3 @@ from visitors_with_leads
 where rn = 1
 order by 8 desc nulls last, 2, 3, 4, 5
 limit 10
-
